@@ -1,0 +1,30 @@
+# =============== Java / Maven ===============
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# =============== Python ===============
+nlp-service/venv/
+nlp-service/__pycache__/
+nlp-service/*.pyc
+nlp-service/.env
+nlp-service/.python-version
+
+# =============== IDE ===============
+.idea/
+*.iml
+*.iws
+
+# =============== Logs ===============
+*.log
+logs/
+
+# =============== Docker ===============
+docker-compose.override.yml
+
+# =============== ОС ===============
+.DS_Store
+Thumbs.db
+
+# =============== Временные файлы ===============
+*.tmp
+*.temp
