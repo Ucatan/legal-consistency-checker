@@ -1,0 +1,47 @@
+# Автоматическое определение текстовых/бинарных файлов
+* text=auto
+
+# Явные правила для текстовых файлов
+*.java text eol=lf
+*.py text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Бинарные файлы
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.war binary
+*.class binary
+*.pyc binary
+*.pyo binary
+*.pyd binary
+
+# Диффы для специфических файлов
+*.java diff=java
+*.py diff=python
+*.xml diff=xml
+*.json diff=json
+*.yml diff=yaml
+
+# Локализация
+*.po text eol=lf
+
+# Игнорировать окончания строк в бинарных файлах
+*.class -text
+*.jar -text
+*.pyc -text
+*.pyo -text
+*.pyd -text
