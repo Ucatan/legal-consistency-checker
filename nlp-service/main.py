@@ -1,10 +1,11 @@
 from fileinput import filename
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 import re
 from fastapi.responses import FileResponse
 import tempfile
+from dotenv import load_dotenv
 import os
 import pdfkit
 from datetime import datetime
@@ -31,7 +32,10 @@ class AnalysisResult(BaseModel):
 
 
 # Настройка пути к wkhtmltopdf для Windows
-WKHTMLTOPDF_PATH = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+
+load_dotenv()  # Загружает переменные из .env
+
+WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
 
 def generate_pdf_report(result: AnalysisResult, output_path: str):
     """Генерирует PDF-отчёт по анализу документа"""
