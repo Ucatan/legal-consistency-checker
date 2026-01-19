@@ -3,7 +3,7 @@
 AI-агент для анализа юридических документов на противоречия, циклические ссылки и логическую целостность.
 
 ## Стек
-- Java 17 + Spring Boot (backend, API)
+- Java 21 + Spring Boot (backend, API)
 - Python 3.10+ + FastAPI + spaCy (NLP/анализ)
 - Запуск: локально / Docker / Cloud
 
