@@ -35,7 +35,8 @@ class AnalysisResult(BaseModel):
 
 load_dotenv()  # Загружает переменные из .env
 
-WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
+# WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
+WKHTMLTOPDF_PATH = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
 def generate_pdf_report(result: AnalysisResult, output_path: str):
     """Генерирует PDF-отчёт по анализу документа"""

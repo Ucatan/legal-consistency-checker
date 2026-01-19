@@ -3,7 +3,7 @@ from qdrant_client.http import models
 from sentence_transformers import SentenceTransformer
 import os
 import logging
-from pathlib import Path  # ← ДОБАВЬТЕ ЭТУ СТРОКУ ВНАЧАЛЕ ФАЙЛА
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
