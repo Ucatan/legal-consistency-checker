@@ -1,14 +1,26 @@
-from fileinput import filename
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
-import re
-from fastapi.responses import FileResponse
-import tempfile
-from dotenv import load_dotenv
 import os
-import pdfkit
+import re
+import tempfile
 from datetime import datetime
+from typing import List, Optional
+
+import pdfkit
+from dotenv import load_dotenv
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+from starlette.responses import HTMLResponse
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+TEMPLATE_NAME = "index.html"
+
+# 🔍 Диагностика: проверим, виден ли шаблон
+template_full_path = os.path.join(BASE_DIR, "templates", TEMPLATE_NAME)
+print(f"📁 Рабочая директория: {BASE_DIR}")
+print(f"📄 Путь к шаблону: {template_full_path}")
+print(f"✅ Файл существует: {os.path.exists(template_full_path)}")
 
 app = FastAPI(
     title="Legal Consistency Checker — NLP Service",
@@ -30,16 +42,13 @@ class AnalysisResult(BaseModel):
     status: str = "completed"
 
 
+load_dotenv()  # переменные из .env
 
-# Настройка пути к wkhtmltopdf для Windows
-
-load_dotenv()  # Загружает переменные из .env
-
-# WKHTMLTOPDF_PATH = os.getenv("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf")
 WKHTMLTOPDF_PATH = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 
+
 def generate_pdf_report(result: AnalysisResult, output_path: str):
-    """Генерирует PDF-отчёт по анализу документа"""
+    """PDF-отчёт по результатам анализа"""
     # HTML-шаблон с русской кодировкой
     html = f"""
     <!DOCTYPE html>
@@ -73,7 +82,7 @@ def generate_pdf_report(result: AnalysisResult, output_path: str):
         f'<h3 style="margin-top: 0; color: #2c3e50">[{issue.type.upper()}] {issue.description}</h3>'
         f'<p><strong>Местоположение:</strong> {issue.location}</p>'
         f'<p><strong>Критичность:</strong> '
-        f'<span style="color: {"#e74c3c" if issue.severity=="high" else "#f39c12" if issue.severity=="medium" else "#3498db"}">'
+        f'<span style="color: {"#e74c3c" if issue.severity == "high" else "#f39c12" if issue.severity == "medium" else "#3498db"}">'
         f'{issue.severity.capitalize()}</span></p>'
         f'</div>'
         for issue in result.issues
@@ -87,7 +96,7 @@ def generate_pdf_report(result: AnalysisResult, output_path: str):
     </html>
     """
 
-    # Генерация PDF
+    # make PDF
     config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
     pdfkit.from_string(
         html,
@@ -103,6 +112,42 @@ def generate_pdf_report(result: AnalysisResult, output_path: str):
         }
     )
     return output_path
+
+
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse(TEMPLATE_NAME, {"request": request})
+
+
+@app.post("/", response_class=HTMLResponse)
+async def upload_and_show_result(request: Request, file: UploadFile = File(...)):
+    if not file.filename.endswith(('.pdf', '.txt')):
+        return templates.TemplateResponse(
+            TEMPLATE_NAME,
+            {"request": request, "error": "Поддерживаются только .pdf и .txt файлы"}
+        )
+
+    try:
+        content = await file.read()
+        text = content.decode('utf-8-sig', errors='ignore')
+        issues = analyze_legal_text(text)
+
+        result = AnalysisResult(
+            document=file.filename,
+            issues=issues,
+            status="completed"
+        )
+
+        return templates.TemplateResponse(
+            TEMPLATE_NAME,
+            {"request": request, "result": result}
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            TEMPLATE_NAME,
+            {"request": request, "error": f"Ошибка анализа: {str(e)}"}
+        )
+
 
 @app.post("/generate-report")
 async def generate_report(file: UploadFile = File(...)):
@@ -153,7 +198,7 @@ def analyze_legal_text(text: str):
         if re.search(r'^\s*(Статья|Ст\.)\s+\d', line, re.IGNORECASE):
             num = re.search(r'(Статья|Ст\.)\s+(\d+(?:\.\d+)?)', line, re.IGNORECASE)
             if num:
-                article_lines.append((num.group(2), i+1, line.strip()))
+                article_lines.append((num.group(2), i + 1, line.strip()))
 
     articles = {num: line_num for num, line_num, _ in article_lines}
 
@@ -162,14 +207,14 @@ def analyze_legal_text(text: str):
     for i, line in enumerate(text.splitlines()):
         # Шаблоны ссылок
         patterns = [
-            r'ст\.?\s*(\d+(?:\.\d+)?)',           # ст.5, ст 5.1
-            r'пункт\s+(\d+)\s+стать[ии]',          # пункт 3 статьи
-            r'стать[ия]\s+(\d+(?:\.\d+)?)',        # статья 10
+            r'ст\.?\s*(\d+(?:\.\d+)?)',  # ст.5, ст 5.1
+            r'пункт\s+(\d+)\s+стать[ии]',  # пункт 3 статьи
+            r'стать[ия]\s+(\d+(?:\.\d+)?)',  # статья 10
         ]
         for pattern in patterns:
             for match in re.finditer(pattern, line, re.IGNORECASE):
                 ref = match.group(1)
-                all_refs.append((ref, i+1))
+                all_refs.append((ref, i + 1))
 
     # 3. Проверка: ссылка → несуществующая статья
     for ref, line_num in all_refs:
@@ -202,7 +247,7 @@ def analyze_legal_text(text: str):
 
     articles_list = list(article_texts.keys())
     for i in range(len(articles_list)):
-        for j in range(i+1, len(articles_list)):
+        for j in range(i + 1, len(articles_list)):
             a1, a2 = articles_list[i], articles_list[j]
             t1, t2 = article_texts[a1].lower(), article_texts[a2].lower()
             for phrase1, phrase2 in contradictions:
@@ -215,6 +260,7 @@ def analyze_legal_text(text: str):
                     ))
 
     return issues
+
 
 @app.post("/analyze", response_model=AnalysisResult)
 async def analyze_document(file: UploadFile = File(...)):

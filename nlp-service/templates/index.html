@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Legal Consistency Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #fafafa; }
+        h1 { color: #2c3e50; text-align: center; }
+        .upload-box {
+            border: 2px dashed #3498db;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+        }
+        .error { color: #e74c3c; font-weight: bold; margin: 15px 0; }
+        .result { margin-top: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .issue {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            border-left: 4px solid #f39c12;
+        }
+        .issue.high { border-left-color: #e74c3c; background: #fef6f6; }
+        .issue.medium { border-left-color: #f39c12; }
+        .issue.low { border-left-color: #3498db; background: #f0f8ff; }
+        button {
+            background: #3498db; color: white; border: none; padding: 10px 20px;
+            border-radius: 5px; cursor: pointer; font-size: 16px;
+        }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+<h1>🔍 Legal Consistency Checker</h1>
+<p style="text-align: center;">Анализ юридических документов на противоречия и ссылки</p>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="upload-box">
+        <input type="file" name="file" accept=".pdf,.txt" required />
+        <br><br>
+        <button type="submit">Загрузить и проанализировать</button>
+    </div>
+</form>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+{% if result %}
+<div class="result">
+    <h2>Результат анализа: {{ result.document }}</h2>
+    {% if result.issues %}
+    {% for issue in result.issues %}
+    <div class="issue {{ issue.severity }}">
+        <strong>[{{ issue.type.upper() }}]</strong> {{ issue.description }}
+        {% if issue.location %}
+        <br><small>📍 {{ issue.location }}</small>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color: #27ae60; font-weight: bold;">✅ Противоречий не обнаружено.</p>
+    {% endif %}
+</div>
+{% endif %}
+</body>
+</html>

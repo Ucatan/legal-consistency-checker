@@ -1,4 +1,4 @@
-@REM ---------------------------------------------------------------------------- 
+@REM ----------------------------------------------------------------------------
 @REM Licensed to the Apache Software Foundation (ASF) under one
 @REM or more contributor license agreements.  See the NOTICE file
 @REM distributed with this work for additional information
@@ -39,19 +39,11 @@ set "WRAPPER_JAR=%WRAPPER_DIR%\maven-wrapper.jar"
 set "WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain"
 
 if not exist "%WRAPPER_JAR%" (
-    if "%MVNW_VERBOSE%" == "true" (
-        echo Couldn't find %WRAPPER_JAR%, downloading it ...
-    )
-    powershell -Command "&{"^
-        "$webclient = new-object System.Net.WebClient;"^
-        "if (-not ([string]::IsNullOrEmpty('%MVNW_USERNAME%') -and [string]::IsNullOrEmpty('%MVNW_PASSWORD%'))) {"^
-        "$webclient.Credentials = new-object System.Net.NetworkCredential('%MVNW_USERNAME%', '%MVNW_PASSWORD%');"^
-        "}"^
-        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $webclient.DownloadFile('https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar', '%WRAPPER_JAR%')"^
-        "}"
-    if "%MVNW_VERBOSE%" == "true" (
-        echo Finished downloading %WRAPPER_JAR%
-    )
+    echo ERROR: Maven Wrapper JAR not found at %WRAPPER_JAR%
+    echo Please run these commands manually:
+    echo mkdir .mvn\wrapper
+    echo curl -Lo .mvn\wrapper\maven-wrapper.jar https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar
+    exit /b 1
 )
 
 set "JAVA_EXE=%JAVA_HOME%\bin\java.exe"
